@@ -3,9 +3,9 @@ let server;
 let rxChar;
 let txChar;
 
-const SERVICE_UUID = "12345678-1234-1234-1234-123456789abc";
-const RX_UUID = "87654321-4321-4321-4321-cba987654321";
-const TX_UUID = "abcdef12-3456-7890-abcd-ef1234567890";
+const SERVICE_UUID = "61177eae-e391-11ed-b5ea-0242ac120000";
+const RX_UUID = "61177eae-e391-11ed-b5ea-0242ac120003";
+const TX_UUID = "61177eae-e391-11ed-b5ea-0242ac120003";
 
 document.getElementById("connectBtn").addEventListener("click", connect);
 document.getElementById("addBtn").addEventListener("click", addItem);
