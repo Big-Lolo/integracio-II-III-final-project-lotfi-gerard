@@ -159,11 +159,9 @@ async function syncCheckedItems() {
     });
 
     for (let item of itemsToClear) {
-        for (let i = 0; i < item.qty; i++) {
-            await sendCommand(`SUB|${item.name}`);
-            // Pequeña pausa para no saturar el buffer BLE
-            await new Promise(r => setTimeout(r, 150));
-        }
+        await sendCommand(`ADD|${item.name}|0`);
+        // Pequeña pausa para no saturar el buffer BLE
+        await new Promise(r => setTimeout(r, 150));
     }
     
     // Una vez sincronizados, limpiamos la lista de tachados local
@@ -187,8 +185,13 @@ async function addItem() {
     showToast(`Enviando: ${name}...`, "info");
 }
 
-window.modifyItem = function(name, action) {
-    sendCommand(`${action}|${name}`);
+window.modifyItem = function(name, currentQty, action) {
+    if (action === 'ADD') {
+        sendCommand(`ADD|${name}`); // El firmware STM32 incrementa por defecto si no hay cantidad
+    } else if (action === 'SUB') {
+        let newQty = Math.max(0, currentQty - 1);
+        sendCommand(`ADD|${name}|${newQty}`);
+    }
 }
 
 window.toggleItem = function(name, btn) {
@@ -259,11 +262,11 @@ function renderList(data) {
                 <span class="text-white font-medium select-none transition-all ${isChecked ? 'line-through text-slate-500' : ''}">${name}</span>
             </div>
             <div class="flex items-center gap-3">
-                <button onclick="modifyItem('${name}', 'SUB'); event.stopPropagation();" class="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors">
+                <button onclick="modifyItem('${name}', parseInt(${qty}), 'SUB'); event.stopPropagation();" class="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>
                 </button>
                 <span class="text-lg font-bold text-blue-400 w-6 text-center">${qty}</span>
-                <button onclick="modifyItem('${name}', 'ADD'); event.stopPropagation();" class="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors">
+                <button onclick="modifyItem('${name}', parseInt(${qty}), 'ADD'); event.stopPropagation();" class="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                 </button>
             </div>
