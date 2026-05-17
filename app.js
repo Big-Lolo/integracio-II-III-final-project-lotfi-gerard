@@ -93,8 +93,8 @@ function updateConnectionState(connected, errorMsg = null) {
             showToast("Desconectado manualmente", "info");
         }
 
-        // NO BORRAR LA LISTA AL DESCONECTAR
-        // Para que se pueda usar offline en el supermercado
+        // DO NOT DELETE THE LIST UPON DISCONNECTION
+        // So that it can be used offline in the supermarket
 
         intentionalDisconnect = false;
     }
@@ -125,7 +125,7 @@ async function connect() {
 
         updateConnectionState(true);
 
-        // Sincronizar productos tachados (enviarlos a 0)
+        // Synchronize checked items (send them as 0)
         await syncCheckedItems();
     } catch (err) {
         console.error(err);
@@ -160,11 +160,11 @@ async function syncCheckedItems() {
 
     for (let item of itemsToClear) {
         await sendCommand(`RMV|${item.name}`);
-        // Pequeña pausa para no saturar el buffer BLE
+        // Short pause to avoid saturating the BLE buffer
         await new Promise(r => setTimeout(r, 150));
     }
 
-    // Una vez sincronizados, limpiamos la lista de tachados local
+    // Once synchronized, we clear the local checked items list
     localStorage.removeItem('checkedItems');
     showToast("Sincronización completada", "success");
 }
@@ -187,7 +187,7 @@ async function addItem() {
 
 window.modifyItem = function (name, currentQty, action) {
     if (action === 'ADD') {
-        sendCommand(`ADD|${name}`); // El firmware STM32 incrementa por defecto si no hay cantidad
+        sendCommand(`ADD|${name}`); // The STM32 firmware increments by default if no quantity is provided
     } else if (action === 'SUB') {
         let newQty = Math.max(0, currentQty - 1);
         sendCommand(`ADD|${name}|${newQty}`);
