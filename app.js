@@ -159,7 +159,7 @@ async function syncCheckedItems() {
     });
 
     for (let item of itemsToClear) {
-        await sendCommand(`ADD|${item.name}|0`);
+        await sendCommand(`RMV|${item.name}`);
         // Pequeña pausa para no saturar el buffer BLE
         await new Promise(r => setTimeout(r, 150));
     }
