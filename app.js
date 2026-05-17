@@ -58,26 +58,37 @@ function showToast(msg, type = 'info') {
     setTimeout(() => {
         toast.style.animation = "slideUp 0.3s ease-in reverse forwards";
         setTimeout(() => toast.remove(), 300);
-    }, 3000);
+    }, 4000); // Increased time slightly to read errors
 }
 
-function updateConnectionState(connected) {
+let intentionalDisconnect = false;
+
+function updateConnectionState(connected, errorMsg = null) {
     if (connected) {
         connectBtn.classList.add("hidden");
         disconnectBtn.classList.remove("hidden");
         ledIndicator.className = "w-3 h-3 rounded-full bg-emerald-500 shadow-[0_0_8px_#10b981]";
         statusText.innerText = "Conectado";
         showToast("Conectado a STM32", "success");
+        intentionalDisconnect = false;
     } else {
         connectBtn.classList.remove("hidden");
         disconnectBtn.classList.add("hidden");
         ledIndicator.className = "w-3 h-3 rounded-full bg-red-500 shadow-[0_0_8px_#ef4444]";
         statusText.innerText = "Desconectado";
-        showToast("STM32 Desconectado", "error");
+        
+        if (errorMsg) {
+            showToast(`Error: ${errorMsg}`, "error");
+        } else if (!intentionalDisconnect) {
+            showToast("Desconexión inesperada (¿Fuera de rango o sin batería?)", "error");
+        } else {
+            showToast("Desconectado manualmente", "info");
+        }
         
         // Clear list on disconnect
         listContainer.innerHTML = "";
         emptyState.classList.remove("hidden");
+        intentionalDisconnect = false;
     }
 }
 
@@ -108,17 +119,18 @@ async function connect() {
     } catch (err) {
         console.error(err);
         if (err.name !== 'NotFoundError') {
-            showToast("Error de conexión", "error");
+            showToast(`Fallo al conectar: ${err.message || err.name}`, "error");
         }
     }
 }
 
-function onDisconnected() {
+function onDisconnected(event) {
     updateConnectionState(false);
 }
 
 function disconnect() {
     if (device && device.gatt.connected) {
+        intentionalDisconnect = true;
         device.gatt.disconnect();
     }
 }
@@ -146,7 +158,7 @@ async function sendCommand(cmd) {
         await rxChar.writeValue(new TextEncoder().encode(cmd));
     } catch (err) {
         console.error("Error al enviar", err);
-        showToast("Error al enviar comando", "error");
+        showToast(`Fallo al enviar: ${err.message || err.name}`, "error");
     }
 }
 
