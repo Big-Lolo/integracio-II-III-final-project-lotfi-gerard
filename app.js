@@ -55,14 +55,14 @@ function showToast(msg, type = 'info') {
     const container = document.getElementById("notifications-container");
     const toast = document.createElement("div");
     toast.className = `toast ${type}`;
-    
+
     let icon = "ℹ️";
     if (type === 'success') icon = "✅";
     if (type === 'error') icon = "❌";
 
     toast.innerHTML = `<span>${icon} &nbsp; ${msg}</span>`;
     container.appendChild(toast);
-    
+
     setTimeout(() => {
         toast.style.animation = "slideUp 0.3s ease-in reverse forwards";
         setTimeout(() => toast.remove(), 300);
@@ -84,7 +84,7 @@ function updateConnectionState(connected, errorMsg = null) {
         disconnectBtn.classList.add("hidden");
         ledIndicator.className = "w-3 h-3 rounded-full bg-red-500 shadow-[0_0_8px_#ef4444]";
         statusText.innerText = "Desconectado";
-        
+
         if (errorMsg) {
             showToast(`Error: ${errorMsg}`, "error");
         } else if (!intentionalDisconnect) {
@@ -92,10 +92,10 @@ function updateConnectionState(connected, errorMsg = null) {
         } else {
             showToast("Desconectado manualmente", "info");
         }
-        
+
         // NO BORRAR LA LISTA AL DESCONECTAR
         // Para que se pueda usar offline en el supermercado
-        
+
         intentionalDisconnect = false;
     }
 }
@@ -124,7 +124,7 @@ async function connect() {
         });
 
         updateConnectionState(true);
-        
+
         // Sincronizar productos tachados (enviarlos a 0)
         await syncCheckedItems();
     } catch (err) {
@@ -142,14 +142,14 @@ function onDisconnected(event) {
 async function syncCheckedItems() {
     let checkedItems = JSON.parse(localStorage.getItem('checkedItems') || '[]');
     let listData = localStorage.getItem('listData');
-    
+
     if (checkedItems.length === 0 || !listData) return;
-    
+
     showToast("Sincronizando compras...", "info");
-    
+
     const items = listData.split(";");
     let itemsToClear = [];
-    
+
     items.forEach(line => {
         if (!line) return;
         const [name, qty] = line.split(",");
@@ -163,7 +163,7 @@ async function syncCheckedItems() {
         // Pequeña pausa para no saturar el buffer BLE
         await new Promise(r => setTimeout(r, 150));
     }
-    
+
     // Una vez sincronizados, limpiamos la lista de tachados local
     localStorage.removeItem('checkedItems');
     showToast("Sincronización completada", "success");
@@ -185,7 +185,7 @@ async function addItem() {
     showToast(`Enviando: ${name}...`, "info");
 }
 
-window.modifyItem = function(name, currentQty, action) {
+window.modifyItem = function (name, currentQty, action) {
     if (action === 'ADD') {
         sendCommand(`ADD|${name}`); // El firmware STM32 incrementa por defecto si no hay cantidad
     } else if (action === 'SUB') {
@@ -194,12 +194,12 @@ window.modifyItem = function(name, currentQty, action) {
     }
 }
 
-window.toggleItem = function(name, btn) {
+window.toggleItem = function (name, btn) {
     const span = btn.nextElementSibling;
     const icon = btn.querySelector('svg');
-    
+
     let checkedItems = JSON.parse(localStorage.getItem('checkedItems') || '[]');
-    
+
     if (checkedItems.includes(name)) {
         // Uncheck
         checkedItems = checkedItems.filter(i => i !== name);
@@ -213,7 +213,7 @@ window.toggleItem = function(name, btn) {
         icon.classList.remove('hidden');
         btn.classList.add('bg-emerald-500/20', 'border-emerald-500/50');
     }
-    
+
     localStorage.setItem('checkedItems', JSON.stringify(checkedItems));
 }
 
@@ -238,17 +238,17 @@ function renderList(data) {
         emptyState.classList.remove("hidden");
         return;
     }
-    
+
     localStorage.setItem('listData', data);
     let checkedItems = JSON.parse(localStorage.getItem('checkedItems') || '[]');
-    
+
     emptyState.classList.add("hidden");
     const items = data.split(";");
 
     items.forEach(line => {
         if (!line) return;
         const [name, qty] = line.split(",");
-        
+
         const isChecked = checkedItems.includes(name);
 
         const el = document.createElement("div");
