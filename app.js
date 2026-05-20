@@ -125,6 +125,9 @@ async function connect() {
 
         updateConnectionState(true);
 
+        // Send current time
+        await sendCurrentTime();
+
         // Synchronize checked items (send them as 0)
         await syncCheckedItems();
     } catch (err) {
@@ -137,6 +140,21 @@ async function connect() {
 
 function onDisconnected(event) {
     updateConnectionState(false);
+}
+
+async function sendCurrentTime() {
+    const now = new Date();
+    const hh = now.getHours().toString().padStart(2, '0');
+    const mm = now.getMinutes().toString().padStart(2, '0');
+    const dd = now.getDate().toString().padStart(2, '0');
+    const mo = (now.getMonth() + 1).toString().padStart(2, '0');
+    const yy = now.getFullYear().toString().slice(-2);
+    
+    const cmd = `TIME|${hh}:${mm}|${dd}/${mo}/${yy}`;
+    await sendCommand(cmd);
+    
+    // Short pause to avoid saturating the BLE buffer
+    await new Promise(r => setTimeout(r, 150));
 }
 
 async function syncCheckedItems() {
